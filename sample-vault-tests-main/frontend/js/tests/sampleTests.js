@@ -1,0 +1,109 @@
+/**
+ * Test: GET /api/samples/my-samples
+ */
+ testUtils.createTestButton("Test Listar Mis Samples", async (btn) => {
+    // 1. Asegurar y guardar una sesión válida
+    await okLogin();
+    const token = localStorage.getItem('test_token');
+    
+    // 2. Realizar la petición
+    const response = await fetch('/api/samples/my-samples', {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    const data = await response.json();
+    testUtils.log(data);
+    if (response.ok) testUtils.setSuccess(btn);
+});
+
+/**
+ * Test: DELETE /api/samples/:id
+ */
+testUtils.createTestButton("Test Eliminar Sample Dinámico", async (btn) => {
+    await okLogin();
+    const token = localStorage.getItem('test_token');
+
+    const formData = new FormData();
+    formData.append('display_name', 'Sample temporal para prueba de borrado');
+    formData.append('category', 'Test');
+    formData.append('bpm', '120');
+    formData.append(
+        'audioFile',
+        new Blob(["Temporary test audio"], { type: 'audio/wav' }),
+        'DELETE_TEST.wav'
+    );
+
+    const uploadResponse = await fetch('/api/samples/upload', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+    });
+    const uploadedSample = await uploadResponse.json();
+    testUtils.log(uploadedSample);
+
+    if (!uploadResponse.ok || !uploadedSample.id) {
+        throw new Error('No se pudo crear el sample temporal para probar el borrado');
+    }
+
+    const response = await fetch(`/api/samples/${uploadedSample.id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    const data = await response.json();
+    testUtils.log(data);
+    if (response.ok) testUtils.setSuccess(btn);
+});
+
+/**
+ * Test: POST /api/samples/upload con datos incompletos
+ */
+testUtils.createTestButton("Test Subir Sample - Error por Datos Faltantes", async (btn) => {
+    await okLogin();
+    const token = localStorage.getItem('test_token');
+
+    const formData = new FormData();
+    formData.append('bpm', '120');
+
+    const blob = new Blob(["Simulated Audio Content"], { type: 'audio/wav' });
+    formData.append('audioFile', blob, 'INCOMPLETE_TEST.wav');
+
+    const response = await fetch('/api/samples/upload', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+    });
+
+    const data = await response.json();
+    testUtils.log(data);
+    if (response.status === 400) testUtils.setSuccess(btn);
+});
+
+/**
+ * Test: POST /api/samples/upload (Simulado)
+ */
+testUtils.createTestButton("Test Subir Sample (Simulado)", async (btn) => {
+    // 1. Asegurar y guardar una sesión válida
+    await okLogin();
+    const token = localStorage.getItem('test_token');
+    
+    // Creamos un FormData
+    const formData = new FormData();
+    formData.append('display_name', 'Test Loop Pedagogico');
+    formData.append('category', 'Drums');
+    formData.append('bpm', '120');
+
+    // Simulamos un archivo WAV (binario vacío para la prueba)
+    const blob = new Blob(["Simulated Audio Content"], { type: 'audio/wav' });
+    formData.append('audioFile', blob, 'DRUM_LOOP_01.wav');
+
+    const response = await fetch('/api/samples/upload', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+    });
+
+    const data = await response.json();
+    testUtils.log(data);
+    if (response.ok) testUtils.setSuccess(btn);
+});
