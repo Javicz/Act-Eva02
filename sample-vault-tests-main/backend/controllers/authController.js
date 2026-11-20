@@ -90,9 +90,10 @@ class AuthController
         }
         catch (error)
         {
+            console.error('Error en el proceso de autenticación:', error);
             res.status(500).json({ 
                 message: "Error en el proceso de autenticación.", 
-                error: error.message 
+                error: error.code || error.message || 'Error desconocido'
             });
         }
     }

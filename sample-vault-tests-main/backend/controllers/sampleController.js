@@ -32,6 +32,12 @@ class SampleController
             const userId = req.userId; // Proveniente del verifyToken
             const filename = req.file.filename;
             const filePath = `/uploads/${filename}`;
+            const bpmValue = bpm === undefined || bpm === '' ? 0 : Number(bpm);
+
+            if (!Number.isInteger(bpmValue) || bpmValue < 0) {
+                fileHelper.deleteFile(filePath);
+                return res.status(400).json({ message: "El BPM debe ser un número entero no negativo." });
+            }
 
             // 2. Persistencia mediante el SP sp_create_sample
             const insertId = await sampleRepo.create({
@@ -39,7 +45,7 @@ class SampleController
                 filename,
                 display_name,
                 category,
-                bpm: parseInt(bpm) || 0,
+                bpm: bpmValue,
                 file_path: filePath
             });
 
@@ -79,6 +85,10 @@ class SampleController
         try 
         {
             const { id } = req.params;
+            if (!/^[1-9]\d*$/.test(id) || !Number.isSafeInteger(Number(id))) {
+                return res.status(400).json({ message: "El ID del sample no es válido." });
+            }
+
             const userId = req.userId;
 
             // 1. Obtener metadatos para conocer la ruta del archivo físico
@@ -89,7 +99,10 @@ class SampleController
             }
 
             // 2. Ejecutar sp_delete_sample en la base de datos
-            await sampleRepo.delete(id, userId);
+            const deleted = await sampleRepo.delete(Number(id), userId);
+            if (!deleted) {
+                return res.status(404).json({ message: "El sample ya no existe o no tienes permisos para eliminarlo." });
+            }
 
             // 3. Eliminación física del archivo (Gestión de recursos)
             fileHelper.deleteFile(sample.file_path); 

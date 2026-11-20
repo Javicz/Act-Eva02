@@ -6,13 +6,14 @@ async function okLogin() {
     });
 
     const data = await response.json();
-    testUtils.log(data);
 
     if (!response.ok || !data.token) {
-        throw new Error('No se pudo iniciar sesion como pepe');
+        const detail = data.error || data.message || 'Respuesta sin token';
+        throw new Error(`Login de prueba falló (HTTP ${response.status}): ${detail}`);
     }
 
     localStorage.setItem('test_token', data.token);
+    testUtils.log({ message: data.message, role: data.role });
     return data.token;
 }
 
@@ -27,10 +28,12 @@ async function okLogin() {
     });
     
     const data = await response.json();
-    testUtils.log(data);
 
     if (response.ok) {
+        testUtils.log({ message: data.message, role: data.role });
         testUtils.setSuccess(btn);
+    } else {
+        throw new Error(`Login falló (HTTP ${response.status}): ${data.error || data.message || 'Respuesta inválida'}`);
     }
 });
 

@@ -14,7 +14,8 @@
  * tokens) fuera del código fuente. Se sitúa en la raíz del proyecto, 
  * usa pares clave-valor y nunca debe subirse al control de versiones (Git). 
  */
- require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 /**
  * Express es un framework web minimalista, rápido y flexible para Node.js, 
@@ -34,8 +35,6 @@ const cors = require('cors');
 /**
  * Módulo/Biblioteca para el manejo de rutas:
  */
-const path = require('path');
-
 /**
  * Módulo/Biblioteca para el manejo del filesystem:
  */
@@ -94,8 +93,18 @@ else
 
 // --- Manejo de errores global ---
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ message: "Error en el servidor", error: err.message });
+    const errorName = err && err.name;
+    const errorMessage = err && err.message;
+    const errorCode = err && err.code;
+
+    if (errorName === 'MulterError' ||
+        (typeof errorMessage === 'string' && errorMessage.startsWith('Invalid file type.'))) {
+        const status = errorCode === 'LIMIT_FILE_SIZE' ? 413 : 400;
+        return res.status(status).json({ message: "El archivo enviado no es válido." });
+    }
+
+    console.error(err);
+    res.status(500).json({ message: "Error en el servidor." });
 });
 
 const PORT = process.env.PORT || 3000;

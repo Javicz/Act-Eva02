@@ -42,6 +42,11 @@ Con MySQL/MariaDB iniciado, desde la carpeta `backend` carga la estructura y los
 cmd /c "mysql -u root -p < config\init.sql"
 ```
 
+Si la base ya está creada y solo necesitas actualizar los procedimientos de borrado, usa esta actualización no destructiva:
+```powershell
+cmd /c "mysql -u root -p samplevaultest < config\update-delete-procedures.sql"
+```
+
 `init.sql` crea la base `samplevaultest` y el usuario de aplicación `samplevaultest` con contraseña `samplevaultest`. Para instalaciones que no sean locales, cambia esas credenciales antes de ejecutar el script.
 
 ### Configuración del entorno
@@ -50,6 +55,7 @@ Desde `backend`, crea el archivo `.env` a partir del ejemplo:
 Copy-Item .env.example .env
 ```
 El modo de pruebas es el predeterminado, por lo que también se puede iniciar sin definir `NODE_ENV`. Revisa las variables de conexión si tu MySQL usa otros valores.
+Si MySQL/MariaDB escucha en un puerto distinto, configura `DB_PORT` en `.env` (por defecto `3306`).
 
 ### Iniciar el servidor
 ```bash

@@ -11,7 +11,8 @@
     
     const loginData = await loginRes.json();
     if (!loginRes.ok || !loginData.token) {
-        throw new Error('No se pudo iniciar sesion como admin');
+        const detail = loginData.error || loginData.message || 'Respuesta sin token';
+        throw new Error(`Login de admin falló (HTTP ${loginRes.status}): ${detail}`);
     }
 
     const response = await fetch('/api/admin/users', {

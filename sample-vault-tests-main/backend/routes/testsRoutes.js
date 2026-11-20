@@ -15,7 +15,7 @@ const path = require('path');
 // --- Rutas de Navegación del Frontend HTML ---
 
 // Al entrar a http://localhost:3000/ cargamos el html de los tests
-router.get('/', (req, res) => {
+router.get(['/', '/tests'], (req, res) => {
     res.sendFile(path.join(__dirname, '../../frontend/html/tests.html'));
 });
 

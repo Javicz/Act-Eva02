@@ -35,10 +35,14 @@ class AdminController
         try
         {
             const targetUserId = req.params.id;
+            if (!/^[1-9]\d*$/.test(targetUserId) || !Number.isSafeInteger(Number(targetUserId))) {
+                return res.status(400).json({ message: "El ID de usuario no es válido." });
+            }
+
             const adminId = req.userId; // ID del administrador que realiza la acción (del JWT)
 
             // 1. Regla de Negocio: No permitir que un admin se elimine a sí mismo
-            if (targetUserId == adminId) {
+            if (Number(targetUserId) === Number(adminId)) {
                 return res.status(403).json({ 
                     message: "Operación denegada: No puedes eliminar tu propia cuenta de administrador." 
                 });
@@ -48,7 +52,7 @@ class AdminController
             const userSamples = await sampleRepo.findByUserId(targetUserId);
             
             // 3. Proceder con la eliminación en la DB (vía SP sp_delete_user)
-            const success = await userRepo.delete(targetUserId);
+            const success = await userRepo.delete(Number(targetUserId));
 
             if (!success) {
                 return res.status(404).json({ message: "Usuario no encontrado." });

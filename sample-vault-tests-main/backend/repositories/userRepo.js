@@ -38,9 +38,9 @@ class UserRepository
     // Borrar un usuario (la integridad referencial se encarga de sus samples y roles)
     async delete(id) 
     {
-        // En los SP de acción (DELETE/UPDATE), verificamos que la ejecución no lance error
-        await db.execute('CALL sp_delete_user(?)', [id]);
-        return true;
+        const [rows] = await db.execute('CALL sp_delete_user(?)', [id]);
+        const result = rows[0] && rows[0][0];
+        return Boolean(result && Number(result.affectedRows) > 0);
     }
 }
 
